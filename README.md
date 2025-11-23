@@ -3,6 +3,9 @@
 
 A simple Python tool to track and analyze your personal carbon footprint.
 
+# DESCRIPTION
+The CO2 Emission Analyser is a data- driven project designed to meaure, analyse and visualize carbon dioxide(CO2) emmission from various sources. This project aims to provide users , researchers , students, and developers- with an inituitive tool to understand emmission patterns, evaluate and support decision making for sustainability initiatives.
+
 ## Installation
 
 1. Make sure you have Python 3.7+ installed
@@ -57,4 +60,5 @@ The analyzer uses standard emission factors:
 - Comparison with averages
 
 - Reduction recommendations
+
 
