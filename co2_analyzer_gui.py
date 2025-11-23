@@ -8,331 +8,277 @@ from co2_analyzer import CO2Analyzer
 class CO2AnalyzerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("🌍 CO2 Emission Analyzer")
-        self.root.geometry("900x700")
-        self.root.configure(bg='#f0f0f0')
+        self.root.title("CO2 Emission Analyzer")
+        self.root.geometry("1000x650")
         
-        # Create analyzer instance
         self.analyzer = CO2Analyzer()
+        self.setup_ui()
         
-        # Create GUI elements
-        self.create_widgets()
+    def setup_ui(self):
+        # header
+        header = tk.Frame(self.root, bg='#34495e', height=70)
+        header.pack(fill='x')
+        header.pack_propagate(False)
         
-    def create_widgets(self):
-        # Title
-        title_frame = tk.Frame(self.root, bg='#2c3e50', height=60)
-        title_frame.pack(fill='x', pady=(0, 10))
-        title_frame.pack_propagate(False)
+        tk.Label(header, text="CO2 Emission Analyzer", 
+                font=('Helvetica', 22, 'bold'), 
+                bg='#34495e', fg='white').pack(pady=20)
         
-        title_label = tk.Label(title_frame, text="🌍 CO2 Emission Analyzer", 
-                              font=('Arial', 20, 'bold'), bg='#2c3e50', fg='white')
-        title_label.pack(pady=15)
+        # main area
+        container = tk.Frame(self.root)
+        container.pack(fill='both', expand=True, padx=15, pady=15)
         
-        # Main container
-        main_container = tk.Frame(self.root, bg='#f0f0f0')
-        main_container.pack(fill='both', expand=True, padx=20, pady=10)
+        # input section (left)
+        input_frame = tk.Frame(container, bg='#ecf0f1', relief='groove', bd=3)
+        input_frame.pack(side='left', fill='both', expand=True, padx=(0, 8))
         
-        # Left panel - Input forms
-        left_panel = tk.Frame(main_container, bg='white', relief='raised', bd=2)
-        left_panel.pack(side='left', fill='both', expand=True, padx=(0, 10))
+        # results section (right)
+        results_frame = tk.Frame(container, bg='#ecf0f1', relief='groove', bd=3)
+        results_frame.pack(side='right', fill='both', expand=True, padx=(8, 0))
         
-        # Right panel - Results
-        right_panel = tk.Frame(main_container, bg='white', relief='raised', bd=2)
-        right_panel.pack(side='right', fill='both', expand=True)
+        self.build_input_area(input_frame)
+        self.build_results_area(results_frame)
         
-        # === LEFT PANEL CONTENT ===
-        self.create_input_section(left_panel)
+    def build_input_area(self, parent):
+        tk.Label(parent, text="Add Emissions", font=('Helvetica', 14, 'bold'),
+                bg='#ecf0f1').pack(pady=12)
         
-        # === RIGHT PANEL CONTENT ===
-        self.create_results_section(right_panel)
+        tabs = ttk.Notebook(parent)
+        tabs.pack(fill='both', expand=True, padx=10, pady=(0, 10))
         
-    def create_input_section(self, parent):
-        # Notebook for tabs
-        notebook = ttk.Notebook(parent)
-        notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        # transportation
+        t_frame = tk.Frame(tabs, bg='white')
+        tabs.add(t_frame, text='Transportation')
         
-        # Transportation Tab
-        transport_frame = tk.Frame(notebook, bg='white')
-        notebook.add(transport_frame, text='🚗 Transportation')
-        self.create_transportation_form(transport_frame)
+        tk.Label(t_frame, text="Mode:", bg='white', 
+                font=('Helvetica', 10)).grid(row=0, column=0, sticky='w', padx=25, pady=(25, 8))
+        self.trans_mode = ttk.Combobox(t_frame, 
+                                       values=['car', 'bus', 'train', 'plane'], 
+                                       state='readonly', width=28)
+        self.trans_mode.grid(row=0, column=1, padx=25, pady=(25, 8))
+        self.trans_mode.current(0)
         
-        # Energy Tab
-        energy_frame = tk.Frame(notebook, bg='white')
-        notebook.add(energy_frame, text='⚡ Energy')
-        self.create_energy_form(energy_frame)
+        tk.Label(t_frame, text="Distance (km):", bg='white', 
+                font=('Helvetica', 10)).grid(row=1, column=0, sticky='w', padx=25, pady=8)
+        self.trans_dist = tk.Entry(t_frame, width=30, font=('Helvetica', 10))
+        self.trans_dist.grid(row=1, column=1, padx=25, pady=8)
         
-        # Food Tab
-        food_frame = tk.Frame(notebook, bg='white')
-        notebook.add(food_frame, text='🍔 Food')
-        self.create_food_form(food_frame)
+        tk.Button(t_frame, text="Add Entry", command=self.add_transport,
+                 bg='#3498db', fg='white', font=('Helvetica', 10, 'bold'),
+                 padx=25, pady=8, cursor='hand2').grid(row=2, column=0, columnspan=2, pady=20)
         
-    def create_transportation_form(self, parent):
-        tk.Label(parent, text="Transportation Mode:", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(20, 5))
+        info = tk.Text(t_frame, height=6, width=45, bg='#f8f9fa', 
+                      font=('Courier', 8), relief='flat', wrap='word')
+        info.grid(row=3, column=0, columnspan=2, padx=25, pady=(10, 20))
+        info.insert('1.0', "Emission factors:\n"
+                          "  Car:   0.192 kg CO2/km\n"
+                          "  Bus:   0.089 kg CO2/km\n"
+                          "  Train: 0.041 kg CO2/km\n"
+                          "  Plane: 0.255 kg CO2/km")
+        info.config(state='disabled')
         
-        self.transport_mode = ttk.Combobox(parent, values=['car', 'bus', 'train', 'plane'],
-                                          state='readonly', width=30)
-        self.transport_mode.pack(padx=20, pady=5)
-        self.transport_mode.set('car')
+        # energy
+        e_frame = tk.Frame(tabs, bg='white')
+        tabs.add(e_frame, text='Energy')
         
-        tk.Label(parent, text="Distance (km):", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(15, 5))
+        tk.Label(e_frame, text="Type:", bg='white', 
+                font=('Helvetica', 10)).grid(row=0, column=0, sticky='w', padx=25, pady=(25, 8))
+        self.energy_type = ttk.Combobox(e_frame, 
+                                       values=['electricity', 'natural_gas'], 
+                                       state='readonly', width=28)
+        self.energy_type.grid(row=0, column=1, padx=25, pady=(25, 8))
+        self.energy_type.current(0)
         
-        self.transport_distance = tk.Entry(parent, width=32, font=('Arial', 10))
-        self.transport_distance.pack(padx=20, pady=5)
+        tk.Label(e_frame, text="Amount (kWh):", bg='white', 
+                font=('Helvetica', 10)).grid(row=1, column=0, sticky='w', padx=25, pady=8)
+        self.energy_amt = tk.Entry(e_frame, width=30, font=('Helvetica', 10))
+        self.energy_amt.grid(row=1, column=1, padx=25, pady=8)
         
-        add_btn = tk.Button(parent, text="Add Transportation", 
-                           command=self.add_transportation,
-                           bg='#3498db', fg='white', font=('Arial', 10, 'bold'),
-                           relief='flat', cursor='hand2', padx=20, pady=10)
-        add_btn.pack(pady=20)
+        tk.Button(e_frame, text="Add Entry", command=self.add_energy,
+                 bg='#e74c3c', fg='white', font=('Helvetica', 10, 'bold'),
+                 padx=25, pady=8, cursor='hand2').grid(row=2, column=0, columnspan=2, pady=20)
         
-        # Info label
-        info_text = """
-        Emission Factors:
-        • Car: 0.192 kg CO2/km
-        • Bus: 0.089 kg CO2/km
-        • Train: 0.041 kg CO2/km
-        • Plane: 0.255 kg CO2/km
-        """
-        tk.Label(parent, text=info_text, font=('Arial', 8), 
-                bg='#ecf0f1', fg='#7f8c8d', justify='left',
-                relief='sunken', padx=10, pady=10).pack(fill='x', padx=20, pady=10)
+        info2 = tk.Text(e_frame, height=5, width=45, bg='#f8f9fa', 
+                       font=('Courier', 8), relief='flat', wrap='word')
+        info2.grid(row=3, column=0, columnspan=2, padx=25, pady=(10, 20))
+        info2.insert('1.0', "Emission factors:\n"
+                           "  Electricity:  0.475 kg CO2/kWh\n"
+                           "  Natural Gas:  0.185 kg CO2/kWh")
+        info2.config(state='disabled')
         
-    def create_energy_form(self, parent):
-        tk.Label(parent, text="Energy Type:", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(20, 5))
+        # food
+        f_frame = tk.Frame(tabs, bg='white')
+        tabs.add(f_frame, text='Food')
         
-        self.energy_type = ttk.Combobox(parent, values=['electricity', 'natural_gas'],
-                                       state='readonly', width=30)
-        self.energy_type.pack(padx=20, pady=5)
-        self.energy_type.set('electricity')
+        tk.Label(f_frame, text="Type:", bg='white', 
+                font=('Helvetica', 10)).grid(row=0, column=0, sticky='w', padx=25, pady=(25, 8))
+        self.food_type = ttk.Combobox(f_frame, 
+                                     values=['meat', 'vegetarian'], 
+                                     state='readonly', width=28)
+        self.food_type.grid(row=0, column=1, padx=25, pady=(25, 8))
+        self.food_type.current(0)
         
-        tk.Label(parent, text="Amount (kWh):", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(15, 5))
+        tk.Label(f_frame, text="Quantity:", bg='white', 
+                font=('Helvetica', 10)).grid(row=1, column=0, sticky='w', padx=25, pady=8)
+        self.food_qty = tk.Entry(f_frame, width=30, font=('Helvetica', 10))
+        self.food_qty.grid(row=1, column=1, padx=25, pady=8)
         
-        self.energy_amount = tk.Entry(parent, width=32, font=('Arial', 10))
-        self.energy_amount.pack(padx=20, pady=5)
+        tk.Label(f_frame, text="(kg for meat, meals for veg)", 
+                bg='white', font=('Helvetica', 8), fg='gray').grid(row=2, column=0, 
+                                                                    columnspan=2, pady=(0, 8))
         
-        add_btn = tk.Button(parent, text="Add Energy Usage", 
-                           command=self.add_energy,
-                           bg='#e74c3c', fg='white', font=('Arial', 10, 'bold'),
-                           relief='flat', cursor='hand2', padx=20, pady=10)
-        add_btn.pack(pady=20)
+        tk.Button(f_frame, text="Add Entry", command=self.add_food,
+                 bg='#27ae60', fg='white', font=('Helvetica', 10, 'bold'),
+                 padx=25, pady=8, cursor='hand2').grid(row=3, column=0, columnspan=2, pady=20)
         
-        # Info label
-        info_text = """
-        Emission Factors:
-        • Electricity: 0.475 kg CO2/kWh
-        • Natural Gas: 0.185 kg CO2/kWh
-        """
-        tk.Label(parent, text=info_text, font=('Arial', 8), 
-                bg='#ecf0f1', fg='#7f8c8d', justify='left',
-                relief='sunken', padx=10, pady=10).pack(fill='x', padx=20, pady=10)
+        info3 = tk.Text(f_frame, height=5, width=45, bg='#f8f9fa', 
+                       font=('Courier', 8), relief='flat', wrap='word')
+        info3.grid(row=4, column=0, columnspan=2, padx=25, pady=(10, 20))
+        info3.insert('1.0', "Emission factors:\n"
+                           "  Meat (beef):      27.0 kg CO2/kg\n"
+                           "  Vegetarian meal:   1.5 kg CO2/meal")
+        info3.config(state='disabled')
         
-    def create_food_form(self, parent):
-        tk.Label(parent, text="Meal Type:", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(20, 5))
+    def build_results_area(self, parent):
+        tk.Label(parent, text="Results", font=('Helvetica', 14, 'bold'),
+                bg='#ecf0f1').pack(pady=12)
         
-        self.food_type = ttk.Combobox(parent, values=['meat', 'vegetarian'],
-                                     state='readonly', width=30)
-        self.food_type.pack(padx=20, pady=5)
-        self.food_type.set('meat')
+        # total display
+        total_box = tk.Frame(parent, bg='#2ecc71', relief='raised', bd=3, height=90)
+        total_box.pack(fill='x', padx=15, pady=10)
+        total_box.pack_propagate(False)
         
-        tk.Label(parent, text="Quantity (kg for meat, meals for veg):", 
-                font=('Arial', 10, 'bold'), bg='white').pack(anchor='w', padx=20, pady=(15, 5))
+        tk.Label(total_box, text="Total Emissions", 
+                font=('Helvetica', 11, 'bold'), 
+                bg='#2ecc71', fg='white').pack(pady=(12, 3))
         
-        self.food_quantity = tk.Entry(parent, width=32, font=('Arial', 10))
-        self.food_quantity.pack(padx=20, pady=5)
+        self.total_display = tk.Label(total_box, text="0.00 kg CO2", 
+                                      font=('Helvetica', 20, 'bold'), 
+                                      bg='#2ecc71', fg='white')
+        self.total_display.pack()
         
-        add_btn = tk.Button(parent, text="Add Food Emission", 
-                           command=self.add_food,
-                           bg='#2ecc71', fg='white', font=('Arial', 10, 'bold'),
-                           relief='flat', cursor='hand2', padx=20, pady=10)
-        add_btn.pack(pady=20)
+        # entries list
+        tk.Label(parent, text="All Entries:", bg='#ecf0f1', 
+                font=('Helvetica', 10, 'bold')).pack(anchor='w', padx=15, pady=(12, 5))
         
-        # Info label
-        info_text = """
-        Emission Factors:
-        • Meat (beef): 27.0 kg CO2/kg
-        • Vegetarian meal: 1.5 kg CO2/meal
-        """
-        tk.Label(parent, text=info_text, font=('Arial', 8), 
-                bg='#ecf0f1', fg='#7f8c8d', justify='left',
-                relief='sunken', padx=10, pady=10).pack(fill='x', padx=20, pady=10)
+        list_container = tk.Frame(parent)
+        list_container.pack(fill='both', expand=True, padx=15, pady=5)
         
-    def create_results_section(self, parent):
-        # Title
-        tk.Label(parent, text="Results & Analytics", font=('Arial', 14, 'bold'),
-                bg='white', fg='#2c3e50').pack(pady=15)
+        scroll = tk.Scrollbar(list_container)
+        scroll.pack(side='right', fill='y')
         
-        # Total emissions display
-        self.total_frame = tk.Frame(parent, bg='#3498db', relief='raised', bd=2)
-        self.total_frame.pack(fill='x', padx=20, pady=10)
+        self.entries_list = tk.Listbox(list_container, 
+                                       yscrollcommand=scroll.set,
+                                       font=('Courier', 9), 
+                                       bg='white',
+                                       selectmode='single')
+        self.entries_list.pack(side='left', fill='both', expand=True)
+        scroll.config(command=self.entries_list.yview)
         
-        tk.Label(self.total_frame, text="Total CO2 Emissions", 
-                font=('Arial', 10, 'bold'), bg='#3498db', fg='white').pack(pady=(10, 5))
+        # buttons
+        btn_frame = tk.Frame(parent, bg='#ecf0f1')
+        btn_frame.pack(fill='x', padx=15, pady=15)
         
-        self.total_label = tk.Label(self.total_frame, text="0.00 kg", 
-                                    font=('Arial', 24, 'bold'), bg='#3498db', fg='white')
-        self.total_label.pack(pady=(0, 10))
+        tk.Button(btn_frame, text="Show Charts", command=self.show_viz,
+                 bg='#9b59b6', fg='white', font=('Helvetica', 9, 'bold'),
+                 cursor='hand2', padx=10, pady=6).pack(side='left', padx=3, fill='x', expand=True)
         
-        # Emissions list
-        tk.Label(parent, text="Emission Entries:", font=('Arial', 10, 'bold'),
-                bg='white').pack(anchor='w', padx=20, pady=(10, 5))
+        tk.Button(btn_frame, text="Save CSV", command=self.save_csv,
+                 bg='#16a085', fg='white', font=('Helvetica', 9, 'bold'),
+                 cursor='hand2', padx=10, pady=6).pack(side='left', padx=3, fill='x', expand=True)
         
-        # Scrollable frame for entries
-        list_frame = tk.Frame(parent, bg='white')
-        list_frame.pack(fill='both', expand=True, padx=20, pady=5)
+        tk.Button(btn_frame, text="Clear", command=self.clear_data,
+                 bg='#e67e22', fg='white', font=('Helvetica', 9, 'bold'),
+                 cursor='hand2', padx=10, pady=6).pack(side='left', padx=3, fill='x', expand=True)
         
-        scrollbar = tk.Scrollbar(list_frame)
-        scrollbar.pack(side='right', fill='y')
-        
-        self.emissions_listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set,
-                                           font=('Courier', 9), bg='#ecf0f1',
-                                           relief='sunken', bd=2)
-        self.emissions_listbox.pack(side='left', fill='both', expand=True)
-        scrollbar.config(command=self.emissions_listbox.yview)
-        
-        # Buttons
-        button_frame = tk.Frame(parent, bg='white')
-        button_frame.pack(fill='x', padx=20, pady=15)
-        
-        tk.Button(button_frame, text="📊 Visualize", command=self.visualize,
-                 bg='#9b59b6', fg='white', font=('Arial', 9, 'bold'),
-                 relief='flat', cursor='hand2').pack(side='left', padx=5, pady=5, expand=True, fill='x')
-        
-        tk.Button(button_frame, text="💾 Save Report", command=self.save_report,
-                 bg='#16a085', fg='white', font=('Arial', 9, 'bold'),
-                 relief='flat', cursor='hand2').pack(side='left', padx=5, pady=5, expand=True, fill='x')
-        
-        tk.Button(button_frame, text="🗑️ Clear All", command=self.clear_all,
-                 bg='#e67e22', fg='white', font=('Arial', 9, 'bold'),
-                 relief='flat', cursor='hand2').pack(side='left', padx=5, pady=5, expand=True, fill='x')
-        
-    def add_transportation(self):
+    def add_transport(self):
         try:
-            mode = self.transport_mode.get()
-            distance = float(self.transport_distance.get())
+            mode = self.trans_mode.get()
+            dist = float(self.trans_dist.get())
             
-            if distance <= 0:
-                messagebox.showerror("Error", "Distance must be greater than 0")
+            if dist <= 0:
+                messagebox.showerror("Invalid Input", "Distance must be positive")
                 return
             
-            self.analyzer.add_transportation(mode, distance)
-            self.update_display()
-            self.transport_distance.delete(0, tk.END)
-            messagebox.showinfo("Success", f"Added {distance} km by {mode}")
+            self.analyzer.add_transportation(mode, dist)
+            self.refresh_display()
+            self.trans_dist.delete(0, tk.END)
             
         except ValueError:
-            messagebox.showerror("Error", "Please enter a valid number for distance")
+            messagebox.showerror("Invalid Input", "Please enter a valid number")
     
     def add_energy(self):
         try:
-            energy_type = self.energy_type.get()
-            amount = float(self.energy_amount.get())
+            etype = self.energy_type.get()
+            amt = float(self.energy_amt.get())
             
-            if amount <= 0:
-                messagebox.showerror("Error", "Amount must be greater than 0")
+            if amt <= 0:
+                messagebox.showerror("Invalid Input", "Amount must be positive")
                 return
             
-            self.analyzer.add_energy(energy_type, amount)
-            self.update_display()
-            self.energy_amount.delete(0, tk.END)
-            messagebox.showinfo("Success", f"Added {amount} kWh of {energy_type}")
+            self.analyzer.add_energy(etype, amt)
+            self.refresh_display()
+            self.energy_amt.delete(0, tk.END)
             
         except ValueError:
-            messagebox.showerror("Error", "Please enter a valid number for amount")
+            messagebox.showerror("Invalid Input", "Please enter a valid number")
     
     def add_food(self):
         try:
-            food_type = self.food_type.get()
-            quantity = float(self.food_quantity.get())
+            ftype = self.food_type.get()
+            qty = float(self.food_qty.get())
             
-            if quantity <= 0:
-                messagebox.showerror("Error", "Quantity must be greater than 0")
+            if qty <= 0:
+                messagebox.showerror("Invalid Input", "Quantity must be positive")
                 return
             
-            self.analyzer.add_food(food_type, quantity)
-            self.update_display()
-            self.food_quantity.delete(0, tk.END)
-            messagebox.showinfo("Success", f"Added {quantity} of {food_type}")
+            self.analyzer.add_food(ftype, qty)
+            self.refresh_display()
+            self.food_qty.delete(0, tk.END)
             
         except ValueError:
-            messagebox.showerror("Error", "Please enter a valid number for quantity")
+            messagebox.showerror("Invalid Input", "Please enter a valid number")
     
-    def update_display(self):
-        # Update total
+    def refresh_display(self):
         total = self.analyzer.get_total_emissions()
-        self.total_label.config(text=f"{total:.2f} kg")
+        self.total_display.config(text=f"{total:.2f} kg CO2")
         
-        # Update list
-        self.emissions_listbox.delete(0, tk.END)
+        self.entries_list.delete(0, tk.END)
         for item in self.analyzer.emissions:
-            entry = f"{item['category']:12} | {item['type']:12} | {item['amount']:6.1f} {item['unit']:5} | {item['co2_kg']:8.2f} kg CO2"
-            self.emissions_listbox.insert(tk.END, entry)
+            line = f"{item['category']:<13} {item['type']:<13} {item['amount']:>7.1f} {item['unit']:<5} = {item['co2_kg']:>8.2f} kg"
+            self.entries_list.insert(tk.END, line)
     
-    def visualize(self):
+    def show_viz(self):
         if not self.analyzer.emissions:
-            messagebox.showwarning("Warning", "No emissions data to visualize!")
+            messagebox.showwarning("No Data", "Add some emissions first")
             return
-        
         self.analyzer.visualize()
     
-    def save_report(self):
+    def save_csv(self):
         if not self.analyzer.emissions:
-            messagebox.showwarning("Warning", "No emissions data to save!")
+            messagebox.showwarning("No Data", "Nothing to save")
             return
         
-        filename = filedialog.asksaveasfilename(
+        filepath = filedialog.asksaveasfilename(
             defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-            initialfile="co2_emissions_report.csv"
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
         )
         
-        if filename:
-            self.analyzer.save_report(filename)
-            messagebox.showinfo("Success", f"Report saved to {filename}")
+        if filepath:
+            self.analyzer.save_report(filepath)
+            messagebox.showinfo("Saved", f"Report saved successfully")
     
-    def clear_all(self):
-        if messagebox.askyesno("Confirm", "Are you sure you want to clear all data?"):
+    def clear_data(self):
+        if messagebox.askyesno("Confirm", "Clear all data?"):
             self.analyzer = CO2Analyzer()
-            self.update_display()
-            messagebox.showinfo("Cleared", "All emission data has been cleared")
-
-
-def main():
-    try:
-        root = tk.Tk()
-        
-        # Force window to appear on top
-        root.lift()
-        root.attributes('-topmost', True)
-        root.after_idle(root.attributes, '-topmost', False)
-        
-        # Center the window on screen
-        root.update_idletasks()
-        width = 900
-        height = 700
-        x = (root.winfo_screenwidth() // 2) - (width // 2)
-        y = (root.winfo_screenheight() // 2) - (height // 2)
-        root.geometry(f'{width}x{height}+{x}+{y}')
-        
-        # Create the app
-        app = CO2AnalyzerGUI(root)
-        
-        print("✓ GUI window should now be visible!")
-        print("If you still don't see it, check your taskbar or press Alt+Tab")
-        
-        # Start the GUI loop
-        root.mainloop()
-        
-    except Exception as e:
-        print(f"Error creating GUI: {e}")
-        import traceback
-        traceback.print_exc()
+            self.refresh_display()
 
 
 if __name__ == "__main__":
-    print("Starting CO2 Analyzer GUI...")
-    main()
+    root = tk.Tk()
+    root.lift()
+    root.attributes('-topmost', True)
+    root.after_idle(root.attributes, '-topmost', False)
+    
+    app = CO2AnalyzerGUI(root)
+    root.mainloop()
