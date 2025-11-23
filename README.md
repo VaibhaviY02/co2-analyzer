@@ -1,5 +1,5 @@
 # VITyarthi-Python-Project-CSE1021 
-# PROJECT - CO2 emission analyser
+# PROJECT - CO2 Emission Analyser
 
 A simple Python tool to track and analyze your personal carbon footprint.
 
@@ -57,3 +57,4 @@ The analyzer uses standard emission factors:
 - Comparison with averages
 
 - Reduction recommendations
+
