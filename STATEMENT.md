@@ -1,7 +1,11 @@
  # Project Statement: CO2 Emission Analyzer
 
 ## 1. Problem Statement
-With increasing environmental concerns, many people want to understand how their daily activities contribute to carbon emissions. However, there are very few simple tools available for beginners to calculate their personal CO2 footprint. This project aims to provide an easy-to-use Python-based solution that helps users track their emissions from transport, energy use, and food consumption.
+CO₂ emission data is often scattered, raw, and difficult to interpret.
+Stakeholders need:  A reproducible pipeline to ingest and clean disparate datasets. 
+• Visual dashboards to explore historical trends and correlations. 
+•  Simple prediction models to forecast short-term emission levels.  
+• Lightweight, documented code and reproducible results for academic/demo use.
 
 ## 2. Scope of the Project
 - The project focuses on calculating basic CO2 emissions based on user inputs.
