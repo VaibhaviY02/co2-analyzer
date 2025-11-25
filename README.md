@@ -32,6 +32,8 @@ This project allows users to enter basic details like distance travelled, electr
 4. Install all required libraries using:
 ```bash
 pip install -r requirements.txt
+```
+
 
 ## Instructions for testing
 1.Run the program and try entering different values for transportation, energy, and food.
@@ -41,9 +43,17 @@ pip install -r requirements.txt
 5.Run the example file (example_usage.py) to confirm that all functions work as expected.
 6.Try giving wrong inputs (like text instead of numbers) to see if error messages appear.
 
+## Screenshots
+<img width="376" height="783" alt="image" src="https://github.com/user-attachments/assets/b276f738-aaa1-4d0e-98ef-b6444fff1d3f" />
+
+<img width="1750" height="712" alt="image" src="https://github.com/user-attachments/assets/73430a0e-79bd-4359-9826-d278afeb4450" />
+
+
+
 ## submitted by : 
 - Vaibhavi Yadav 
 - 25BAI10516
+
 
 
 
