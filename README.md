@@ -37,10 +37,15 @@ pip install -r requirements.txt
 
 ## Instructions for testing
 1.Run the program and try entering different values for transportation, energy, and food.
+
 2.Check if the total CO2 emission updates correctly after each input.
+
 3.Test the “Visualize” option to see if the graph opens without errors.
+
 4.Save a report as CSV and verify that the file is created properly.
+
 5.Run the example file (example_usage.py) to confirm that all functions work as expected.
+
 6.Try giving wrong inputs (like text instead of numbers) to see if error messages appear.
 
 ## Screenshots
@@ -53,6 +58,7 @@ pip install -r requirements.txt
 ## submitted by : 
 - Vaibhavi Yadav 
 - 25BAI10516
+
 
 
 
